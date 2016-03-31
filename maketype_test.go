@@ -10,36 +10,25 @@ type Potato interface {
 	Peel()
 }
 
-type Russet struct{}
+type RussetPotato struct{}
 
-func (p *Russet) Peel() {}
-
-type derp struct{}
-
-type Notato Russet
+func (p *RussetPotato) Peel() {}
 
 func TestMakeType(t *testing.T) {
-	russetType := reflect.TypeOf(Russet{})
-	notatoType := reflect.TypeOf(Notato{})
+	russetPotatoType := reflect.TypeOf(RussetPotato{})
 	dynamicPotatoType := MakeType("DynamicPotato", reflect.TypeOf(struct{}{}))
 
 	AddMethod(reflect.PtrTo(dynamicPotatoType), "Peel", func(p *struct{}) {
 		fmt.Println("Made it!")
 	})
 
-	fmt.Printf("Potato: %s %#v\n", russetType.String(), fromReflectType(russetType).methods)
-	fmt.Printf("Notato: %s %#v\n", notatoType.String(), fromReflectType(notatoType).methods)
-	fmt.Printf("DynamicPotato: %s %#v\n", dynamicPotatoType.String(), fromReflectType(dynamicPotatoType))
+	fmt.Printf("RussetPotato: %s %#v\n", russetPotatoType.String(), fromReflectType(russetPotatoType).ptrToThis.methods)
+	fmt.Printf("DynamicPotato: %s %#v\n", dynamicPotatoType.String(), fromReflectType(dynamicPotatoType).ptrToThis.methods)
 
 	dynamicPotato, ok := reflect.ValueOf(&struct{}{}).Convert(reflect.PtrTo(dynamicPotatoType)).Interface().(Potato)
 	if !ok {
 		t.Error("Our fresh type isn't convertible to Potato after adding the right methods")
 	}
-
-	var potato Potato = dynamicPotato
-	potato = &Russet{}
-
-	potato.Peel()
 
 	// (*reflect.Value)(fromReflectType(reflect.PtrTo(dynamicPotatoType)).methods[0].ifn).Call([]reflect.Value{
 	// 	reflect.Indirect(reflect.ValueOf(dynamicPotato)).Addr().Convert(reflect.PtrTo(reflect.TypeOf(struct{}{}))),

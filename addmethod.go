@@ -1,14 +1,9 @@
 package dynamic
 
 import (
-	"fmt"
 	"reflect"
 	"unsafe"
 )
-
-func trampoline() {
-	fmt.Println("BOUNCE BOUNCE")
-}
 
 func AddMethod(t reflect.Type, name string, f interface{}) {
 	fv := reflect.ValueOf(f)
@@ -29,11 +24,10 @@ func AddMethod(t reflect.Type, name string, f interface{}) {
 	}
 
 	tfn := reflect.MakeFunc(ft, func(args []reflect.Value) []reflect.Value {
-		fmt.Println("TFN!!!!!!!!!!!!!!!!")
 		return fv.Call(args)
 	})
-	_ = reflect.MakeFunc(ft, func(args []reflect.Value) []reflect.Value {
-		fmt.Println("IFN!!!!!!!!!!!!!!!!")
+	// TODO: Check for kindDirectIface
+	ifn := reflect.MakeFunc(ft, func(args []reflect.Value) []reflect.Value {
 		return fv.Call(append([]reflect.Value{reflect.Indirect(args[0])}, args[1:]...))
 	})
 
@@ -42,7 +36,7 @@ func AddMethod(t reflect.Type, name string, f interface{}) {
 		name: &name,
 		mtyp: fromReflectType(reflect.FuncOf(inTypes[1:], outTypes, ft.IsVariadic())),
 		typ:  fromReflectType(reflect.FuncOf(append([]reflect.Type{t}, inTypes...), outTypes, ft.IsVariadic())),
-		ifn:  unsafe.Pointer(&tfn),
+		ifn:  unsafe.Pointer(&ifn),
 		tfn:  unsafe.Pointer(&tfn),
 	})
 }
