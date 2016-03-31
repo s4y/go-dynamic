@@ -25,7 +25,12 @@ func TestMakeType(t *testing.T) {
 	fmt.Printf("RussetPotato: %s %#v\n", russetPotatoType.String(), fromReflectType(russetPotatoType).ptrToThis.methods)
 	fmt.Printf("DynamicPotato: %s %#v\n", dynamicPotatoType.String(), fromReflectType(dynamicPotatoType).ptrToThis.methods)
 
-	dynamicPotato, ok := reflect.ValueOf(&struct{}{}).Convert(reflect.PtrTo(dynamicPotatoType)).Interface().(Potato)
+	dynamicPotato := reflect.ValueOf(&struct{}{}).Convert(reflect.PtrTo(dynamicPotatoType))
+
+	// Segfault!
+	dynamicPotato.MethodByName("Peel").Call([]reflect.Value{})
+
+	potato, ok := dynamicPotato.Interface().(Potato)
 	if !ok {
 		t.Error("Our fresh type isn't convertible to Potato after adding the right methods")
 	}
@@ -34,5 +39,5 @@ func TestMakeType(t *testing.T) {
 	// 	reflect.Indirect(reflect.ValueOf(dynamicPotato)).Addr().Convert(reflect.PtrTo(reflect.TypeOf(struct{}{}))),
 	// })
 
-	dynamicPotato.Peel()
+	potato.Peel()
 }

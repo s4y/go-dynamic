@@ -14,9 +14,9 @@ func AddMethod(t reflect.Type, name string, f interface{}) {
 	if !ft.In(0).ConvertibleTo(t) {
 		panic("AddMethod: function's first parameter must be convertible to " + t.String())
 	}
-	inTypes := make([]reflect.Type, ft.NumIn())
+	inTypes := make([]reflect.Type, ft.NumIn()-1)
 	for i := 0; i < len(inTypes); i++ {
-		inTypes[i] = ft.In(i)
+		inTypes[i] = ft.In(i + 1)
 	}
 	outTypes := make([]reflect.Type, ft.NumOut())
 	for i := 0; i < len(outTypes); i++ {
@@ -34,7 +34,7 @@ func AddMethod(t reflect.Type, name string, f interface{}) {
 	rt := fromReflectType(t)
 	rt.methods = append(rt.methods, method{
 		name: &name,
-		mtyp: fromReflectType(reflect.FuncOf(inTypes[1:], outTypes, ft.IsVariadic())),
+		mtyp: fromReflectType(reflect.FuncOf(inTypes, outTypes, ft.IsVariadic())),
 		typ:  fromReflectType(reflect.FuncOf(append([]reflect.Type{t}, inTypes...), outTypes, ft.IsVariadic())),
 		ifn:  unsafe.Pointer(&ifn),
 		tfn:  unsafe.Pointer(&tfn),
